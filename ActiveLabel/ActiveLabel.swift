@@ -27,6 +27,8 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     
     open var configureLinkAttribute: ConfigureLinkAttribute?
 
+    open var mentionSymbolHidden: Bool?
+
     @IBInspectable open var mentionColor: UIColor = .blue {
         didSet { updateTextStorage(parseText: false) }
     }
@@ -330,7 +332,16 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             }
 
             for element in elements {
-                mutAttrString.setAttributes(attributes, range: element.range)
+                if type == .mention && mentionSymbolHidden == true {
+                    let string = mutAttrString.string
+                    let range = element.range
+                    let offset = string[string.index(string.startIndex, offsetBy: range.location)] == "@" ? 1 : 2
+                    mutAttrString.setAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 0.1)], range: NSMakeRange(range.location + offset - 1, 1))
+                    mutAttrString.setAttributes(attributes, range: NSMakeRange(range.location + offset, range.length - offset))
+
+                } else {
+                    mutAttrString.setAttributes(attributes, range: element.range)
+                }
             }
         }
     }
@@ -392,6 +403,7 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         var attributes = textStorage.attributes(at: 0, effectiveRange: nil)
         let type = selectedElement.type
 
+        attributes[NSAttributedString.Key.font] = font
         if isSelected {
             let selectedColor: UIColor
             switch type {
@@ -422,7 +434,15 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             attributes = configureLinkAttribute(type, attributes, isSelected)
         }
 
-        textStorage.addAttributes(attributes, range: selectedElement.range)
+        if type == .mention && mentionSymbolHidden == true {
+            if let string = attributedText?.string {
+                let range = selectedElement.range
+                let offset = string[string.index(string.startIndex, offsetBy: range.location)] == "@" ? 1 : 2
+                textStorage.addAttributes(attributes, range: NSMakeRange(range.location + offset, range.length - offset))
+            }
+        } else {
+            textStorage.addAttributes(attributes, range: selectedElement.range)
+        }
 
         setNeedsDisplay()
     }
