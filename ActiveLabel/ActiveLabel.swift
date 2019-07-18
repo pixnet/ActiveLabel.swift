@@ -65,6 +65,10 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     public var highlightFontSize: CGFloat? = nil {
         didSet { updateTextStorage(parseText: false) }
     }
+
+    public var mentions = [String:String]() {
+        didSet { updateTextStorage() }
+    }
     
     // MARK: - Computed Properties
     private var hightlightFont: UIFont? {
@@ -338,7 +342,6 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
                     let offset = string[string.index(string.startIndex, offsetBy: range.location)] == "@" ? 1 : 2
                     mutAttrString.setAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 0.1)], range: NSMakeRange(range.location + offset - 1, 1))
                     mutAttrString.setAttributes(attributes, range: NSMakeRange(range.location + offset, range.length - offset))
-
                 } else {
                     mutAttrString.setAttributes(attributes, range: element.range)
                 }
@@ -373,7 +376,42 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             activeElements[type] = hashtagElements
         }
 
+        if let _ = activeElements[.mention] {
+            for i in 0..<activeElements[.mention]!.count {
+                let element = activeElements[.mention]![i]
+                let range = element.range
+                var index = 0
+                for i in 0..<range.length {
+                    if textString[textString.index(textString.startIndex, offsetBy: range.location + i)] == "@" {
+                        index = i
+                        break
+                    }
+                }
+                let beginIndex = textString.index(textString.startIndex, offsetBy: range.location + index + 1)
+                let endIndex = textString.index(textString.startIndex, offsetBy: range.location + range.length)
+                let id = String(textString[beginIndex..<endIndex])
+                if let name = mentions[id] {
+                    textString.replaceSubrange(beginIndex..<endIndex, with: name)
+                    let offset = name.count + index + 1 - range.length
+                    updateActiveElements(from: range.location, offset: offset)
+                }
+            }
+        }
+
         return textString
+    }
+
+    fileprivate func updateActiveElements(from: Int, offset: Int) {
+        for type in activeElements.keys {
+            for i in 0..<activeElements[type]!.count {
+                let range = activeElements[type]![i].range
+                if range.location == from {
+                    activeElements[type]![i].range.length += offset
+                } else if range.location > from {
+                    activeElements[type]![i].range.location += offset
+                }
+            }
+        }
     }
 
 
