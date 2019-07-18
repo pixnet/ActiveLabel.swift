@@ -339,9 +339,15 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
                 if type == .mention && mentionSymbolHidden == true {
                     let string = mutAttrString.string
                     let range = element.range
-                    let offset = string[string.index(string.startIndex, offsetBy: range.location)] == "@" ? 1 : 2
-                    mutAttrString.setAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 0.1)], range: NSMakeRange(range.location + offset - 1, 1))
-                    mutAttrString.setAttributes(attributes, range: NSMakeRange(range.location + offset, range.length - offset))
+                    var index = 0
+                    for i in 0..<range.length {
+                        if string[string.index(string.startIndex, offsetBy: range.location + i)] == "@" {
+                            index = i
+                            break
+                        }
+                    }
+                    mutAttrString.setAttributes([NSAttributedString.Key.font: UIFont.systemFont(ofSize: 0.1)], range: NSMakeRange(range.location + index, 1))
+                    mutAttrString.setAttributes(attributes, range: NSMakeRange(range.location + index + 1, range.length - index - 1))
                 } else {
                     mutAttrString.setAttributes(attributes, range: element.range)
                 }
@@ -475,8 +481,14 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         if type == .mention && mentionSymbolHidden == true {
             if let string = attributedText?.string {
                 let range = selectedElement.range
-                let offset = string[string.index(string.startIndex, offsetBy: range.location)] == "@" ? 1 : 2
-                textStorage.addAttributes(attributes, range: NSMakeRange(range.location + offset, range.length - offset))
+                var index = 0
+                for i in 0..<range.length {
+                    if string[string.index(string.startIndex, offsetBy: range.location + i)] == "@" {
+                        index = i
+                        break
+                    }
+                }
+                textStorage.addAttributes(attributes, range: NSMakeRange(range.location + index + 1, range.length - index - 1))
             }
         } else {
             textStorage.addAttributes(attributes, range: selectedElement.range)
