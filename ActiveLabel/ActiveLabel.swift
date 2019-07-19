@@ -69,6 +69,10 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
     public var mentions = [String:String]() {
         didSet { updateTextStorage() }
     }
+
+    public var mentionFont: UIFont? = nil {
+        didSet { updateTextStorage(parseText: false) }
+    }
     
     // MARK: - Computed Properties
     private var hightlightFont: UIFont? {
@@ -326,6 +330,12 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             case .url: attributes[NSAttributedString.Key.foregroundColor] = URLColor
             case .custom: attributes[NSAttributedString.Key.foregroundColor] = customColor[type] ?? defaultCustomColor
             }
+
+            if let mentionFont = mentionFont, type == .mention {
+                attributes[NSAttributedString.Key.font] = mentionFont
+            } else {
+                attributes[NSAttributedString.Key.font] = font
+            }
             
             if let highlightFont = hightlightFont {
                 attributes[NSAttributedString.Key.font] = highlightFont
@@ -447,7 +457,6 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         var attributes = textStorage.attributes(at: 0, effectiveRange: nil)
         let type = selectedElement.type
 
-        attributes[NSAttributedString.Key.font] = font
         if isSelected {
             let selectedColor: UIColor
             switch type {
@@ -468,6 +477,12 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
             case .custom: unselectedColor = customColor[selectedElement.type] ?? defaultCustomColor
             }
             attributes[NSAttributedString.Key.foregroundColor] = unselectedColor
+        }
+
+        if let mentionFont = mentionFont, type == .mention {
+            attributes[NSAttributedString.Key.font] = mentionFont
+        } else {
+            attributes[NSAttributedString.Key.font] = font
         }
         
         if let highlightFont = hightlightFont {
