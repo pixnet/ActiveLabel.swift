@@ -74,6 +74,10 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
         didSet { updateTextStorage(parseText: false) }
     }
     
+    public var hashtagFont: UIFont? = nil {
+        didSet { updateTextStorage(parseText: false) }
+    }
+    
     // MARK: - Computed Properties
     private var hightlightFont: UIFont? {
         guard let highlightFontName = highlightFontName, let highlightFontSize = highlightFontSize else { return nil }
@@ -339,6 +343,8 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
 
             if let mentionFont = mentionFont, type == .mention {
                 attributes[NSAttributedString.Key.font] = mentionFont
+            } else if let hashtagFont = hashtagFont, type == .hashtag {
+                attributes[NSAttributedString.Key.font] = hashtagFont
             } else {
                 attributes[NSAttributedString.Key.font] = font
             }
@@ -487,6 +493,8 @@ typealias ElementTuple = (range: NSRange, element: ActiveElement, type: ActiveTy
 
         if let mentionFont = mentionFont, type == .mention {
             attributes[NSAttributedString.Key.font] = mentionFont
+        } else if let hashtagFont = hashtagFont, type == .hashtag {
+            attributes[NSAttributedString.Key.font] = hashtagFont
         } else {
             attributes[NSAttributedString.Key.font] = font
         }
